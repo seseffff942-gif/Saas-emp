@@ -32,6 +32,12 @@ sealed class Screen(val route: String) {
     object Team : Screen("team")
     object Billing : Screen("billing")
     object Devices : Screen("devices")
+    object OnboardingUserInfo : Screen("onboarding_user_info")
+    object OnboardingBusinessType : Screen("onboarding_business_type")
+    object OnboardingCategory : Screen("onboarding_category")
+    object OnboardingGoals : Screen("onboarding_goals")
+    object OnboardingLoading : Screen("onboarding_loading")
+    object Paywall : Screen("paywall")
 }
 
 @Composable
@@ -117,6 +123,24 @@ fun AppNavHostContent(
         }
         composable(Screen.Devices.route) {
             com.example.ui.screens.DevicesScreen(navController)
+        }
+        composable(Screen.OnboardingUserInfo.route) {
+            com.example.ui.screens.onboarding.OnboardingUserInfoScreen(navController, viewModel)
+        }
+        composable(Screen.OnboardingBusinessType.route) {
+            com.example.ui.screens.onboarding.OnboardingBusinessTypeScreen(navController, viewModel)
+        }
+        composable(Screen.OnboardingCategory.route) {
+            com.example.ui.screens.onboarding.OnboardingCategoryScreen(navController, viewModel)
+        }
+        composable(Screen.OnboardingGoals.route) {
+            com.example.ui.screens.onboarding.OnboardingGoalsScreen(navController, viewModel)
+        }
+        composable(Screen.OnboardingLoading.route) {
+            com.example.ui.screens.onboarding.OnboardingLoadingScreen(navController, viewModel)
+        }
+        composable(Screen.Paywall.route) {
+            com.example.ui.screens.onboarding.PaywallScreen(navController, viewModel)
         }
     }
 }
