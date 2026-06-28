@@ -189,8 +189,17 @@ fun ProductCard(product: Product) {
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f)),
             contentAlignment = Alignment.Center
         ) {
-            // Placeholder for image icon
-            Icon(Icons.Default.Inventory2, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.outline.copy(alpha=0.5f))
+            if (product.imageUri.isNotEmpty()) {
+                coil.compose.AsyncImage(
+                    model = product.imageUri,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+            } else {
+                // Placeholder for image icon
+                Icon(Icons.Default.Inventory2, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.outline.copy(alpha=0.5f))
+            }
 
             val badgeColor = if (isLowStock) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
             val badgeTextColor = if (isLowStock) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onTertiary

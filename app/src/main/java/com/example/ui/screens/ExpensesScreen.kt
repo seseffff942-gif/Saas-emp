@@ -240,11 +240,13 @@ fun ExpenseTimelineItem(expense: FinanceLog) {
 @Composable
 fun AddExpenseDialog(
     onDismiss: () -> Unit,
-    onSave: (Double, String, String) -> Unit
+    onSave: suspend (Double, String, String) -> Unit
 ) {
     var amountStr by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Suministros") }
+    var isSaving by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -257,37 +259,48 @@ fun AddExpenseDialog(
                     onValueChange = { amountStr = it },
                     label = { Text("Monto (Q)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isSaving
                 )
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Descripción") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isSaving
                 )
                 // Using simple textfield for category to save time instead of complex dropdown
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
                     label = { Text("Categoría (Proveedor, Servicios, Suministros)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isSaving
                 )
             }
         },
         confirmButton = {
             TextButton(
+                enabled = !isSaving,
                 onClick = {
                     val amount = amountStr.toDoubleOrNull() ?: 0.0
                     if (amount > 0 && title.isNotBlank()) {
-                        onSave(amount, title, category)
+                        scope.launch {
+                            isSaving = true
+                            onSave(amount, title, category)
+                        }
                     }
                 }
             ) {
-                Text("Guardar")
+                if (isSaving) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                } else {
+                    Text("Guardar")
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, enabled = !isSaving) {
                 Text("Cancelar")
             }
         }

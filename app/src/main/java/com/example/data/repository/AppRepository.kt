@@ -5,6 +5,7 @@ import com.example.data.model.FinanceLog
 import com.example.data.model.Product
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,8 +14,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class AppRepository {
-    private val client = SupabaseApi.client
+import android.content.Context
+import android.content.SharedPreferences
+
+class AppRepository(private val context: Context) {
+    val client = SupabaseApi.client
+    private val prefs: SharedPreferences = context.getSharedPreferences("supabase_session", Context.MODE_PRIVATE)
     
     private val _allProducts = MutableStateFlow<List<Product>>(emptyList())
     val allProducts: Flow<List<Product>> = _allProducts
@@ -30,11 +35,37 @@ class AppRepository {
         // Initial fetch when repo is created
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                client.auth.awaitInitialization()
+                restoreSession()
                 fetchProducts()
                 fetchFinanceLogs()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private suspend fun restoreSession() {
+        val token = prefs.getString("access_token", null)
+        val refreshToken = prefs.getString("refresh_token", null)
+        if (token != null && refreshToken != null) {
+            try {
+                client.auth.importAuthToken(token, refreshToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun saveSession() {
+        val session = client.auth.currentSessionOrNull()
+        if (session != null) {
+            prefs.edit()
+                .putString("access_token", session.accessToken)
+                .putString("refresh_token", session.refreshToken)
+                .apply()
+        } else {
+            prefs.edit().clear().apply()
         }
     }
 
@@ -64,7 +95,8 @@ class AppRepository {
         }
     }
 
-    private fun getCurrentUserId(): String {
+    private suspend fun getCurrentUserId(): String {
+        client.auth.awaitInitialization()
         return client.auth.currentUserOrNull()?.id ?: ""
     }
 
@@ -73,6 +105,7 @@ class AppRepository {
             this.email = email
             this.password = password
         }
+        saveSession()
         fetchProducts()
         fetchFinanceLogs()
     }
@@ -82,12 +115,14 @@ class AppRepository {
             this.email = email
             this.password = password
         }
+        saveSession()
         fetchProducts()
         fetchFinanceLogs()
     }
 
     suspend fun logout() {
         client.auth.signOut()
+        saveSession()
         _allProducts.value = emptyList()
         _allFinanceLogs.value = emptyList()
     }
@@ -103,9 +138,18 @@ class AppRepository {
         @kotlinx.serialization.SerialName("image_uri") val imageUri: String
     )
 
-    suspend fun insertProduct(product: Product) {
+    suspend fun insertProduct(product: Product, imageBytes: ByteArray? = null, extension: String? = null) {
         try {
             val userId = getCurrentUserId()
+            var finalImageUri = product.imageUri
+            
+            if (imageBytes != null) {
+                val bucket = client.storage["products"]
+                val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
+                bucket.upload(filename, imageBytes)
+                finalImageUri = bucket.publicUrl(filename)
+            }
+            
             val newProduct = ProductInsert(
                 userId = userId,
                 name = product.name,
@@ -113,7 +157,7 @@ class AppRepository {
                 price = product.price,
                 stock = product.stock,
                 notes = product.notes,
-                imageUri = product.imageUri
+                imageUri = finalImageUri
             )
             client.postgrest["products"].insert(newProduct)
             fetchProducts() // Refresh

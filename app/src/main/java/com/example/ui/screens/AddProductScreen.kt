@@ -81,6 +81,7 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
+                val context = androidx.compose.ui.platform.LocalContext.current
                 Button(
                     onClick = {
                         val price = priceStr.toDoubleOrNull() ?: 0.0
@@ -88,6 +89,24 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                         if (name.isNotBlank()) {
                             scope.launch {
                                 isSaving = true
+                                
+                                var imageBytes: ByteArray? = null
+                                var extension: String? = null
+                                if (imageUri.isNotEmpty()) {
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                        try {
+                                            val uri = android.net.Uri.parse(imageUri)
+                                            val mimeType = context.contentResolver.getType(uri)
+                                            extension = if (mimeType?.contains("png") == true) ".png" else ".jpg"
+                                            val inputStream = context.contentResolver.openInputStream(uri)
+                                            imageBytes = inputStream?.readBytes()
+                                            inputStream?.close()
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                }
+
                                 viewModel.addProduct(
                                     Product(
                                         name = name,
@@ -95,8 +114,10 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                                         price = price,
                                         stock = stock,
                                         notes = notes,
-                                        imageUri = imageUri
-                                    )
+                                        imageUri = ""
+                                    ),
+                                    imageBytes,
+                                    extension
                                 )
                                 delay(1200)
                                 isSaving = false

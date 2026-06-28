@@ -10,9 +10,9 @@ import kotlinx.serialization.SerialName
 data class FinanceLog(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @SerialName("user_id") val userId: String = "",
-    val type: String, // "INCOME" or "EXPENSE"
-    val amount: Double,
-    val title: String, // "Sale", "Electricity Bill", etc.
-    val category: String, // "Supplier", "Utilities", "Supplies", "Sales"
+    val type: String = "", // "INCOME" or "EXPENSE"
+    val amount: Double = 0.0,
+    val title: String = "", // "Sale", "Electricity Bill", etc.
+    val category: String = "", // "Supplier", "Utilities", "Supplies", "Sales"
     val timestamp: Long = System.currentTimeMillis()
 )

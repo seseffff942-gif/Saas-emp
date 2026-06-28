@@ -10,10 +10,10 @@ import kotlinx.serialization.SerialName
 data class Product(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @SerialName("user_id") val userId: String = "",
-    val name: String,
-    val category: String,
-    val price: Double,
-    val stock: Int,
+    val name: String = "",
+    val category: String = "",
+    val price: Double = 0.0,
+    val stock: Int = 0,
     val notes: String = "",
     @SerialName("image_uri") val imageUri: String = ""
 )

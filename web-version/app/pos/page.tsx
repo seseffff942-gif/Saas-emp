@@ -131,8 +131,12 @@ export default function POS() {
                    <div className="absolute top-3 left-3 bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md">
                      DISPONIBLES: {product.stock}
                    </div>
-                   <div className="w-16 h-16 bg-slate-50 rounded-xl mt-4 mb-3 flex items-center justify-center">
-                     <ShoppingCart className="w-8 h-8 text-slate-300" />
+                   <div className="w-16 h-16 bg-slate-50 rounded-xl mt-4 mb-3 flex items-center justify-center overflow-hidden relative">
+                     {product.image_uri ? (
+                       <img src={product.image_uri} alt={product.name} className="w-full h-full object-cover" />
+                     ) : (
+                       <ShoppingCart className="w-8 h-8 text-slate-300" />
+                     )}
                    </div>
                    <p className="text-xs font-bold text-slate-400 uppercase">{product.category}</p>
                    <h3 className="font-bold text-slate-800 text-sm line-clamp-2 mt-1 mb-2">{product.name}</h3>
@@ -176,7 +180,15 @@ export default function POS() {
               <div className="space-y-4">
                 {cart.map(item => (
                   <div key={item.id} className="flex gap-3 border-b border-slate-100 pb-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0"></div>
+                    <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 overflow-hidden">
+                      {item.image_uri ? (
+                        <img src={item.image_uri} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                           <ShoppingCart className="w-5 h-5 text-slate-300" />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{item.name}</h4>
                       <p className="text-xs font-bold text-emerald-600">Q {item.price.toFixed(2)}</p>

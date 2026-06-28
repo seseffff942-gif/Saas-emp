@@ -197,9 +197,12 @@ export default function Inventory() {
                 </div>
                 
                 <div className="p-6 flex flex-col items-center flex-1">
-                  <div className="w-24 h-24 bg-slate-100 rounded-xl mb-4 flex items-center justify-center text-slate-400">
-                    {/* Placeholder for image */}
-                    <Package className="w-10 h-10" />
+                  <div className="w-24 h-24 bg-slate-100 rounded-xl mb-4 flex items-center justify-center text-slate-400 overflow-hidden relative">
+                    {product.image_uri ? (
+                      <img src={product.image_uri} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="w-10 h-10" />
+                    )}
                   </div>
                   <h3 className="font-bold text-slate-800 text-center mb-2 line-clamp-2">{product.name}</h3>
                   <div className="text-2xl font-black text-emerald-600 mb-4">Q {product.price.toFixed(2)}</div>

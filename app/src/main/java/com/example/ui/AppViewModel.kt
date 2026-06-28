@@ -12,11 +12,26 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import io.github.jan.supabase.auth.auth
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            try {
+                repository.client.auth.awaitInitialization()
+                val user = repository.client.auth.currentUserOrNull()
+                if (user != null) {
+                    _authState.value = AuthState.Success
+                }
+            } catch (e: Exception) {
+                // Not logged in or error
+            }
+        }
+    }
 
     val allProducts: StateFlow<List<Product>> = repository.allProducts
         .stateIn(
@@ -96,22 +111,16 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
-    fun addProduct(product: Product) {
-        viewModelScope.launch {
-            repository.insertProduct(product)
-        }
+    suspend fun addProduct(product: Product, imageBytes: ByteArray? = null, extension: String? = null) {
+        repository.insertProduct(product, imageBytes, extension)
     }
 
-    fun updateProduct(product: Product) {
-        viewModelScope.launch {
-            repository.updateProduct(product)
-        }
+    suspend fun updateProduct(product: Product) {
+        repository.updateProduct(product)
     }
 
-    fun logFinance(log: FinanceLog) {
-        viewModelScope.launch {
-            repository.insertFinanceLog(log)
-        }
+    suspend fun logFinance(log: FinanceLog) {
+        repository.insertFinanceLog(log)
     }
 }
 

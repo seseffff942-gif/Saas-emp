@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         val database = AppDatabase.getDatabase(this)
-        val repository = AppRepository()
+        val repository = AppRepository(applicationContext)
         
         setContent {
             MicroManagerTheme {

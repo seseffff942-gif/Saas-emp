@@ -10,6 +10,7 @@ export default function AddProduct() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -35,6 +36,12 @@ export default function AddProduct() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
@@ -42,6 +49,24 @@ export default function AddProduct() {
     setError("");
 
     try {
+      let imageUrl = "";
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${userId}_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("products")
+          .upload(fileName, imageFile);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from("products")
+          .getPublicUrl(fileName);
+          
+        imageUrl = publicUrl;
+      }
+
       const { error: insertError } = await supabase.from("products").insert({
         user_id: userId,
         name: formData.name,
@@ -49,7 +74,7 @@ export default function AddProduct() {
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         notes: formData.notes,
-        image_uri: ""
+        image_uri: imageUrl
       });
 
       if (insertError) throw insertError;
@@ -73,6 +98,22 @@ export default function AddProduct() {
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del Producto</label>
+              
+              {imageFile && (
+                <div className="mb-4">
+                  <img src={URL.createObjectURL(imageFile)} alt="Preview" className="w-32 h-32 object-cover rounded-xl border border-gray-200" />
+                </div>
+              )}
+              
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 bg-gray-50 outline-none text-gray-900"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Producto</label>
               <input
