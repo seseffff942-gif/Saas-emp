@@ -56,7 +56,7 @@ class AppRepository(private val context: Context) {
         val refreshToken = prefs.getString("refresh_token", null)
         if (token != null && refreshToken != null) {
             try {
-                client.auth.importAuthToken(token, refreshToken)
+                client.auth.importAuthToken(token, refreshToken, autoRefresh = false)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -145,38 +145,34 @@ class AppRepository(private val context: Context) {
     )
 
     suspend fun insertProduct(product: Product, imageBytes: ByteArray? = null, extension: String? = null) {
-        try {
-            val userId = getCurrentUserId()
-            var finalImageUri = product.imageUri
-            
-            if (imageBytes != null) {
-                try {
-                    val bucket = client.storage["products"]
-                    val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
-                    bucket.upload(filename, imageBytes) {
-                        upsert = true
-                    }
-                    finalImageUri = bucket.publicUrl(filename)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    // Keep the local imageUri as a fallback
+        val userId = getCurrentUserId()
+        var finalImageUri = product.imageUri
+        
+        if (imageBytes != null) {
+            try {
+                val bucket = client.storage["products"]
+                val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
+                bucket.upload(filename, imageBytes) {
+                    upsert = true
                 }
+                finalImageUri = bucket.publicUrl(filename)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Keep the local imageUri as a fallback
             }
-            
-            val newProduct = ProductInsert(
-                userId = userId,
-                name = product.name,
-                category = product.category,
-                price = product.price,
-                stock = product.stock,
-                notes = product.notes,
-                imageUri = finalImageUri
-            )
-            client.postgrest["products"].insert(newProduct)
-            fetchProducts() // Refresh
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
+        
+        val newProduct = ProductInsert(
+            userId = userId,
+            name = product.name,
+            category = product.category,
+            price = product.price,
+            stock = product.stock,
+            notes = product.notes,
+            imageUri = finalImageUri
+        )
+        client.postgrest["products"].insert(newProduct)
+        fetchProducts() // Refresh
     }
 
     suspend fun updateProduct(product: Product) {

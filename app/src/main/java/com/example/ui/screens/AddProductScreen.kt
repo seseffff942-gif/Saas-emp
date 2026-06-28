@@ -116,23 +116,28 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                                     }
                                 }
 
-                                viewModel.addProduct(
-                                    Product(
-                                        name = name,
-                                        category = category,
-                                        price = price,
-                                        stock = stock,
-                                        notes = notes,
-                                        imageUri = imageUri
-                                    ),
-                                    imageBytes,
-                                    extension
-                                )
-                                delay(1200)
-                                isSaving = false
-                                isSaved = true
-                                delay(2000)
-                                navController.popBackStack()
+                                try {
+                                    viewModel.addProduct(
+                                        Product(
+                                            name = name,
+                                            category = category,
+                                            price = price,
+                                            stock = stock,
+                                            notes = notes,
+                                            imageUri = imageUri
+                                        ),
+                                        imageBytes,
+                                        extension
+                                    )
+                                    isSaving = false
+                                    isSaved = true
+                                    delay(1000)
+                                    navController.popBackStack()
+                                } catch (e: Exception) {
+                                    isSaving = false
+                                    // Could show a snackbar here, but for now we just don't pop back stack
+                                    e.printStackTrace()
+                                }
                             }
                         }
                     },
