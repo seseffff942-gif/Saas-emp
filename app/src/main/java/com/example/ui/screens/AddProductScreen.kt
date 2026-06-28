@@ -1,5 +1,8 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,10 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.data.model.Product
 import com.example.ui.AppViewModel
 import kotlinx.coroutines.delay
@@ -41,7 +46,16 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
 
     var isSaving by remember { mutableStateOf(false) }
     var isSaved by remember { mutableStateOf(false) }
+    var imageUri by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null) {
+            imageUri = uri.toString()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -80,7 +94,8 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                                         category = category,
                                         price = price,
                                         stock = stock,
-                                        notes = notes
+                                        notes = notes,
+                                        imageUri = imageUri
                                     )
                                 )
                                 delay(1200)
@@ -138,14 +153,23 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.White)
                         .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)) // Should be dashed in real implementation
-                        .clickable { /*TODO*/ },
+                        .clickable { launcher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Toca para agregar foto", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Mejores imágenes, más ventas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    if (imageUri.isNotEmpty()) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = imageUri),
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Toca para agregar foto", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Mejores imágenes, más ventas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                        }
                     }
                 }
             }

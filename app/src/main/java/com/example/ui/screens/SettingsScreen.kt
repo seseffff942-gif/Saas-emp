@@ -77,8 +77,8 @@ fun SettingsScreen(navController: NavController, viewModel: AppViewModel) {
                     Text("JU", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Empresa de Juan", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Plan: Free", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Mi Empresa", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Plan: PRO SAAS", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
                 Button(
                     onClick = { navController.navigate("business_details") },
@@ -139,20 +139,19 @@ fun SettingsScreen(navController: NavController, viewModel: AppViewModel) {
                 }
             }
             
-            // Premium CTA
+            // Premium CTA - Hide since already PRO
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                    .clickable { navController.navigate("subscription") }
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
                     .padding(20.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(48.dp))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Actualizar a PRO", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                    Text("Reportes ilimitados y múltiples usuarios", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f))
+                    Text("Suscripción PRO Activa", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text("¡Disfruta de funciones ilimitadas!", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f))
                 }
             }
         }

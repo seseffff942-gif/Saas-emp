@@ -11,7 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,11 +22,66 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamScreen(navController: NavController) {
-    val teamMembers = listOf(
+    var teamMembers by remember { mutableStateOf(listOf(
         Pair("Juan Pérez", "Administrador"),
         Pair("Pedro Gómez", "Cajero"),
         Pair("Ana López", "Gerente de Tienda")
-    )
+    )) }
+    
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var currentMemberIndex by remember { mutableStateOf(-1) }
+    var memberName by remember { mutableStateOf("") }
+    var memberRole by remember { mutableStateOf("") }
+
+    if (showAddDialog || showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showAddDialog = false
+                showEditDialog = false
+            },
+            title = { Text(if (showAddDialog) "Añadir Empleado" else "Editar Empleado") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = memberName,
+                        onValueChange = { memberName = it },
+                        label = { Text("Nombre") }
+                    )
+                    OutlinedTextField(
+                        value = memberRole,
+                        onValueChange = { memberRole = it },
+                        label = { Text("Rol") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (memberName.isNotBlank() && memberRole.isNotBlank()) {
+                        if (showAddDialog) {
+                            teamMembers = teamMembers + Pair(memberName, memberRole)
+                        } else if (showEditDialog && currentMemberIndex >= 0) {
+                            val newList = teamMembers.toMutableList()
+                            newList[currentMemberIndex] = Pair(memberName, memberRole)
+                            teamMembers = newList
+                        }
+                    }
+                    showAddDialog = false
+                    showEditDialog = false
+                }) {
+                    Text("Guardar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showAddDialog = false
+                    showEditDialog = false
+                }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -42,7 +97,11 @@ fun TeamScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* TODO */ },
+                onClick = { 
+                    memberName = ""
+                    memberRole = ""
+                    showAddDialog = true 
+                },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -74,7 +133,8 @@ fun TeamScreen(navController: NavController) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(teamMembers) { member ->
+                items(teamMembers.size) { index ->
+                    val member = teamMembers[index]
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -97,7 +157,12 @@ fun TeamScreen(navController: NavController) {
                             Text(member.first, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             Text(member.second, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        TextButton(onClick = { /* TODO */ }) {
+                        TextButton(onClick = { 
+                            memberName = member.first
+                            memberRole = member.second
+                            currentMemberIndex = index
+                            showEditDialog = true
+                        }) {
                             Text("Editar")
                         }
                     }

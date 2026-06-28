@@ -111,10 +111,27 @@ fun ReportsScreen(navController: NavController, viewModel: AppViewModel) {
                     .height(200.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                    .padding(16.dp)
             ) {
-                Text("Gráficas detalladas disponibles en la versión Premium.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column {
+                    Text("Rendimiento Mensual (PRO)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        val heights = listOf(0.3f, 0.5f, 0.4f, 0.7f, 0.6f, 0.9f)
+                        val labels = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun")
+                        heights.forEachIndexed { index, h ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(modifier = Modifier.width(32.dp).fillMaxHeight(h).clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)).background(MaterialTheme.colorScheme.primary))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

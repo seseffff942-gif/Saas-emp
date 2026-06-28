@@ -44,6 +44,9 @@ fun InventoryScreen(
     drawerState: DrawerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
 

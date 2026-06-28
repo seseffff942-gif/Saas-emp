@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,9 @@ fun DashboardScreen(
     drawerState: DrawerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     val lowStock by viewModel.lowStockProducts.collectAsStateWithLifecycle()
     val allLogs by viewModel.allFinanceLogs.collectAsStateWithLifecycle()
@@ -169,6 +173,65 @@ fun DashboardScreen(
                             isAlert = lowStock.isNotEmpty(),
                             modifier = Modifier.weight(1f)
                         )
+                    }
+                }
+
+                // Simple Bar Chart
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Patrones y Temporalidad",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 2.dp,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            val days = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+                            
+                            val cal = java.util.Calendar.getInstance()
+                            cal.time = java.util.Date()
+                            val currentDayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
+                            // map to our array 0=Mon, 6=Sun
+                            val currentDayIndex = if (currentDayOfWeek == 1) 6 else currentDayOfWeek - 2
+
+                            val baseData = FloatArray(7) { 0.1f }
+                            baseData[currentDayIndex] = if (totalSalesToday > 0) 1f else 0.1f
+                            
+                            days.forEachIndexed { index, day ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Bottom,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    val height = baseData[index]
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.6f)
+                                            .fillMaxHeight(height)
+                                            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                                            .background(if (index == 5) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = day,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

@@ -48,6 +48,9 @@ fun ExpensesScreen(
     drawerState: DrawerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
     val allLogs by viewModel.allFinanceLogs.collectAsStateWithLifecycle()
     val expenses by remember(allLogs) { derivedStateOf { allLogs.filter { it.type == "EXPENSE" } } }
     val monthTotal by remember(expenses) { derivedStateOf { expenses.sumOf { it.amount } } }
@@ -245,6 +248,7 @@ fun AddExpenseDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = true),
         title = { Text("Registrar Gasto") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

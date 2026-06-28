@@ -92,10 +92,29 @@ class AppRepository {
         _allFinanceLogs.value = emptyList()
     }
 
+    @kotlinx.serialization.Serializable
+    private data class ProductInsert(
+        @kotlinx.serialization.SerialName("user_id") val userId: String,
+        val name: String,
+        val category: String,
+        val price: Double,
+        val stock: Int,
+        val notes: String,
+        @kotlinx.serialization.SerialName("image_uri") val imageUri: String
+    )
+
     suspend fun insertProduct(product: Product) {
         try {
             val userId = getCurrentUserId()
-            val newProduct = product.copy(userId = userId)
+            val newProduct = ProductInsert(
+                userId = userId,
+                name = product.name,
+                category = product.category,
+                price = product.price,
+                stock = product.stock,
+                notes = product.notes,
+                imageUri = product.imageUri
+            )
             client.postgrest["products"].insert(newProduct)
             fetchProducts() // Refresh
         } catch (e: Exception) {
@@ -125,10 +144,27 @@ class AppRepository {
         }
     }
 
+    @kotlinx.serialization.Serializable
+    private data class FinanceLogInsert(
+        @kotlinx.serialization.SerialName("user_id") val userId: String,
+        val type: String,
+        val amount: Double,
+        val title: String,
+        val category: String,
+        val timestamp: Long
+    )
+
     suspend fun insertFinanceLog(log: FinanceLog) {
         try {
             val userId = getCurrentUserId()
-            val newLog = log.copy(userId = userId)
+            val newLog = FinanceLogInsert(
+                userId = userId,
+                type = log.type,
+                amount = log.amount,
+                title = log.title,
+                category = log.category,
+                timestamp = log.timestamp
+            )
             client.postgrest["finance_logs"].insert(newLog)
             fetchFinanceLogs()
         } catch (e: Exception) {

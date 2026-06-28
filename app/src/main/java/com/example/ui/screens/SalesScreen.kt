@@ -43,6 +43,9 @@ fun SalesScreen(
     drawerState: androidx.compose.material3.DrawerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     val filteredProducts by remember(allProducts, searchQuery) {

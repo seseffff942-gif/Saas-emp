@@ -40,6 +40,10 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         )
 
     fun login(email: String, password: String) {
+        if (email.lowercase() != "seseffff942@gmail.com") {
+            _authState.value = AuthState.Error("Acceso denegado. Usuario no autorizado.")
+            return
+        }
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -52,6 +56,10 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
     fun signUp(email: String, password: String) {
+        if (email.lowercase() != "seseffff942@gmail.com") {
+            _authState.value = AuthState.Error("Acceso denegado. Usuario no autorizado.")
+            return
+        }
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -71,6 +79,17 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.logout()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun refreshData() {
+        viewModelScope.launch {
+            try {
+                repository.fetchProducts()
+                repository.fetchFinanceLogs()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

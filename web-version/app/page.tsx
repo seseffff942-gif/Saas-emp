@@ -14,6 +14,10 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (email.toLowerCase() !== "seseffff942@gmail.com") {
+      setError("Acceso denegado. Usuario no autorizado.");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -31,6 +35,10 @@ export default function Login() {
   };
 
   const handleSignUp = async () => {
+    if (email.toLowerCase() !== "seseffff942@gmail.com") {
+      setError("Acceso denegado. Usuario no autorizado.");
+      return;
+    }
     setLoading(true);
     setError("");
 
