@@ -146,9 +146,9 @@ class AppRepository(private val context: Context) {
 
     suspend fun insertProduct(product: Product, imageBytes: ByteArray? = null, extension: String? = null) {
         val userId = getCurrentUserId()
-        var finalImageUri = product.imageUri
+        var finalImageUri = ""
         
-        if (imageBytes != null) {
+        if (imageBytes != null && product.imageUri.isNotEmpty()) {
             try {
                 val bucket = client.storage["products"]
                 val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
@@ -158,7 +158,7 @@ class AppRepository(private val context: Context) {
                 finalImageUri = bucket.publicUrl(filename)
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Keep the local imageUri as a fallback
+                // Do not keep local content URI for remote DB
             }
         }
         
