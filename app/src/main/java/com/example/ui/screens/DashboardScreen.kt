@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import com.example.ui.AppViewModel
 import com.example.ui.components.BottomNavBar
 import com.example.ui.navigation.Screen
@@ -33,7 +34,12 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun DashboardScreen(navController: NavController, viewModel: AppViewModel) {
+fun DashboardScreen(
+    navController: NavController, 
+    viewModel: AppViewModel,
+    drawerState: DrawerState,
+    coroutineScope: kotlinx.coroutines.CoroutineScope
+) {
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     val lowStock by viewModel.lowStockProducts.collectAsStateWithLifecycle()
     val allLogs by viewModel.allFinanceLogs.collectAsStateWithLifecycle()
@@ -45,7 +51,17 @@ fun DashboardScreen(navController: NavController, viewModel: AppViewModel) {
     }
 
     Scaffold(
-        bottomBar = { BottomNavBar(navController = navController, currentRoute = Screen.Dashboard.route) },
+        topBar = {
+            @OptIn(ExperimentalMaterial3Api::class)
+            TopAppBar(
+                title = { Text("Panel de Control") },
+                navigationIcon = {
+                    IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.Sales.route) },

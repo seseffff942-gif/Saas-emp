@@ -37,9 +37,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.material.icons.filled.Menu
+import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpensesScreen(navController: NavController, viewModel: AppViewModel) {
+fun ExpensesScreen(
+    navController: NavController, 
+    viewModel: AppViewModel,
+    drawerState: DrawerState,
+    coroutineScope: kotlinx.coroutines.CoroutineScope
+) {
     val allLogs by viewModel.allFinanceLogs.collectAsStateWithLifecycle()
     val expenses by remember(allLogs) { derivedStateOf { allLogs.filter { it.type == "EXPENSE" } } }
     val monthTotal by remember(expenses) { derivedStateOf { expenses.sumOf { it.amount } } }
@@ -67,15 +75,10 @@ fun ExpensesScreen(navController: NavController, viewModel: AppViewModel) {
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Gastos", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                title = { Text("Finanzas y Cuentas", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                 navigationIcon = {
-                    Box(modifier = Modifier.padding(start = 16.dp, end = 8.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        )
+                    IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                        Icon(Icons.Default.Menu, "Menu", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 actions = {
@@ -85,8 +88,7 @@ fun ExpensesScreen(navController: NavController, viewModel: AppViewModel) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
             )
-        },
-        bottomBar = { BottomNavBar(navController = navController, currentRoute = Screen.Expenses.route) }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier

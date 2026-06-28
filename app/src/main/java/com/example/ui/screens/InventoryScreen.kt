@@ -28,14 +28,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import com.example.data.model.Product
 import com.example.ui.AppViewModel
 import com.example.ui.components.BottomNavBar
 import com.example.ui.navigation.Screen
 
+import androidx.compose.material.icons.filled.Menu
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InventoryScreen(navController: NavController, viewModel: AppViewModel) {
+fun InventoryScreen(
+    navController: NavController, 
+    viewModel: AppViewModel,
+    drawerState: DrawerState,
+    coroutineScope: kotlinx.coroutines.CoroutineScope
+) {
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
 
@@ -48,7 +56,16 @@ fun InventoryScreen(navController: NavController, viewModel: AppViewModel) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = { BottomNavBar(navController = navController, currentRoute = Screen.Inventory.route) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Bodega") },
+                navigationIcon = {
+                    IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.AddProduct.route) },

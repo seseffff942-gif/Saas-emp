@@ -33,9 +33,16 @@ import com.example.ui.navigation.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import androidx.compose.material.icons.filled.Menu
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SalesScreen(navController: NavController, viewModel: AppViewModel) {
+fun SalesScreen(
+    navController: NavController, 
+    viewModel: AppViewModel,
+    drawerState: androidx.compose.material3.DrawerState,
+    coroutineScope: kotlinx.coroutines.CoroutineScope
+) {
     val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     val filteredProducts by remember(allProducts, searchQuery) {
@@ -132,8 +139,8 @@ fun SalesScreen(navController: NavController, viewModel: AppViewModel) {
             TopAppBar(
                 title = { Text("Nueva Venta", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás", tint = MaterialTheme.colorScheme.primary)
+                    IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                        Icon(Icons.Default.Menu, "Menu", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 actions = {
