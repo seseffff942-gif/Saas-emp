@@ -16,19 +16,20 @@ import io.github.jan.supabase.auth.auth
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Initializing)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     init {
         viewModelScope.launch {
             try {
-                repository.client.auth.awaitInitialization()
-                val user = repository.client.auth.currentUserOrNull()
-                if (user != null) {
+                val isLoggedIn = repository.initializeSession()
+                if (isLoggedIn) {
                     _authState.value = AuthState.Success
+                } else {
+                    _authState.value = AuthState.Idle
                 }
             } catch (e: Exception) {
-                // Not logged in or error
+                _authState.value = AuthState.Idle
             }
         }
     }
@@ -125,6 +126,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 }
 
 sealed class AuthState {
+    object Initializing : AuthState()
     object Idle : AuthState()
     object Loading : AuthState()
     object Success : AuthState()

@@ -48,11 +48,20 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
     var isSaved by remember { mutableStateOf(false) }
     var imageUri by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: android.net.Uri? ->
         if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             imageUri = uri.toString()
         }
     }
@@ -114,7 +123,7 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                                         price = price,
                                         stock = stock,
                                         notes = notes,
-                                        imageUri = ""
+                                        imageUri = imageUri
                                     ),
                                     imageBytes,
                                     extension
@@ -174,7 +183,7 @@ fun AddProductScreen(navController: NavController, viewModel: AppViewModel) {
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.White)
                         .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)) // Should be dashed in real implementation
-                        .clickable { launcher.launch("image/*") },
+                        .clickable { launcher.launch(arrayOf("image/*")) },
                     contentAlignment = Alignment.Center
                 ) {
                     if (imageUri.isNotEmpty()) {

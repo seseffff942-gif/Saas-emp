@@ -42,6 +42,13 @@ fun LoginScreen(navController: NavController, viewModel: AppViewModel) {
         }
     }
 
+    if (authState is AuthState.Initializing) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        return
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

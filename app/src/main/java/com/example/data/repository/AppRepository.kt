@@ -32,16 +32,22 @@ class AppRepository(private val context: Context) {
     val allFinanceLogs: Flow<List<FinanceLog>> = _allFinanceLogs
 
     init {
-        // Initial fetch when repo is created
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                client.auth.awaitInitialization()
-                restoreSession()
+        // Init happens explicitly from ViewModel now to avoid races
+    }
+
+    suspend fun initializeSession(): Boolean {
+        return try {
+            client.auth.awaitInitialization()
+            restoreSession()
+            val isLoggedIn = client.auth.currentUserOrNull() != null
+            if (isLoggedIn) {
                 fetchProducts()
                 fetchFinanceLogs()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+            isLoggedIn
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
@@ -144,10 +150,17 @@ class AppRepository(private val context: Context) {
             var finalImageUri = product.imageUri
             
             if (imageBytes != null) {
-                val bucket = client.storage["products"]
-                val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
-                bucket.upload(filename, imageBytes)
-                finalImageUri = bucket.publicUrl(filename)
+                try {
+                    val bucket = client.storage["products"]
+                    val filename = "${userId}_${System.currentTimeMillis()}${extension ?: ".jpg"}"
+                    bucket.upload(filename, imageBytes) {
+                        upsert = true
+                    }
+                    finalImageUri = bucket.publicUrl(filename)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // Keep the local imageUri as a fallback
+                }
             }
             
             val newProduct = ProductInsert(
