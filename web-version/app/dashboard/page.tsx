@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Package, TrendingUp, DollarSign, LogOut } from "lucide-react";
+import { Package, TrendingUp, DollarSign } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -31,15 +32,13 @@ export default function Dashboard() {
 
   const fetchData = async (userId: string) => {
     try {
-      // Fetch products count
       const { count: productsCount } = await supabase
         .from("products")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
 
-      // Fetch today's sales (simplified for now, fetching all incomes)
       const { data: finances } = await supabase
-        .from("finances")
+        .from("finance_logs")
         .select("amount")
         .eq("user_id", userId)
         .eq("type", "INCOME");
@@ -59,39 +58,15 @@ export default function Dashboard() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Cargando dashboard...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">Mi Negocio</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">{user?.email}</span>
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
-                title="Cerrar sesión"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Resumen General</h2>
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+      <main className="flex-1 p-8 overflow-y-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">Resumen General</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -125,12 +100,12 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <div className="mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between">
+        <div className="mt-12 bg-blue-50 border border-blue-100 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-blue-900">Actualiza a PRO</h3>
-            <p className="text-blue-700 mt-1">Obtén reportes avanzados, múltiples usuarios y más.</p>
+            <h3 className="text-xl font-bold text-blue-900">Actualiza a PRO</h3>
+            <p className="text-blue-700 mt-2">Obtén reportes avanzados, múltiples usuarios y más.</p>
           </div>
-          <button onClick={() => router.push('/pricing')} className="mt-4 md:mt-0 bg-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={() => router.push('/pricing')} className="mt-6 md:mt-0 bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
             Ver Planes
           </button>
         </div>
