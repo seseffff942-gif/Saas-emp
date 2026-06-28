@@ -55,6 +55,76 @@ fun SalesScreen(navController: NavController, viewModel: AppViewModel) {
 
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
+    var showQuickSaleDialog by remember { mutableStateOf(false) }
+    var manualAmount by remember { mutableStateOf("") }
+    var manualDescription by remember { mutableStateOf("") }
+
+    if (showQuickSaleDialog) {
+        AlertDialog(
+            onDismissRequest = { showQuickSaleDialog = false },
+            title = { Text("Venta Rápida Libre") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Registra una venta sin afectar el inventario.", style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(
+                        value = manualAmount,
+                        onValueChange = { manualAmount = it },
+                        label = { Text("Monto (Q)") },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = manualDescription,
+                        onValueChange = { manualDescription = it },
+                        label = { Text("Descripción (Opcional)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val amount = manualAmount.toDoubleOrNull() ?: 0.0
+                        if (amount > 0) {
+                            scope.launch {
+                                isSaving = true
+                                viewModel.logFinance(
+                                    FinanceLog(
+                                        type = "INCOME",
+                                        amount = amount,
+                                        title = if (manualDescription.isNotBlank()) "Venta Manual: $manualDescription" else "Venta Manual",
+                                        category = "Sales"
+                                    )
+                                )
+                                showQuickSaleDialog = false
+                                manualAmount = ""
+                                manualDescription = ""
+                                delay(500)
+                                isSaving = false
+                                navController.navigate(Screen.Dashboard.route) {
+                                    popUpTo(Screen.Dashboard.route) { inclusive = true }
+                                }
+                            }
+                        }
+                    },
+                    enabled = !isSaving && (manualAmount.toDoubleOrNull() ?: 0.0) > 0
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Registrar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuickSaleDialog = false }, enabled = !isSaving) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -76,20 +146,24 @@ fun SalesScreen(navController: NavController, viewModel: AppViewModel) {
         },
         bottomBar = {
             Column {
-                if (totalItems > 0) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                            .padding(16.dp)
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Resumen de Carrito ($totalItems art.)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("Total: Q ${"%.2f".format(totalAmount)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                            }
-                            Button(
-                                onClick = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                        .padding(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = if (totalItems > 0) "Resumen de Carrito ($totalItems art.)" else "Sin artículos seleccionados",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text("Total: Q ${"%.2f".format(totalAmount)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        Button(
+                            onClick = {
+                                if (totalItems > 0) {
                                     scope.launch {
                                         isSaving = true
                                         // Log Sale
@@ -115,20 +189,23 @@ fun SalesScreen(navController: NavController, viewModel: AppViewModel) {
                                             popUpTo(Screen.Dashboard.route) { inclusive = true }
                                         }
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                enabled = !isSaving
-                            ) {
-                                if (isSaving) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                                 } else {
-                                    Icon(Icons.Default.CheckCircle, null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Confirmar Venta")
+                                    // Venta rápida manual
+                                    showQuickSaleDialog = true
                                 }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = !isSaving
+                        ) {
+                            if (isSaving) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                            } else {
+                                Icon(if (totalItems > 0) Icons.Default.CheckCircle else Icons.Default.Add, null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(if (totalItems > 0) "Confirmar Venta" else "Venta Rápida Libre")
                             }
                         }
                     }
